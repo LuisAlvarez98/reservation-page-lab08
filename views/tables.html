@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Tables Page</title>
+
+    <!-- Latest compiled and minified CSS & JS -->
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+    <script src="https://code.jquery.com/jquery.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="jumbotron">
+        <h1 class="text-center">
+          <span class="fa fa-fire"></span> Hot Restaurant
+        </h1>
+        <hr />
+        <h2 class="text-center">Current Reservations and Waiting List</h2>
+        <br />
+
+        <div class="text-center">
+          <a href="/reserve"
+            ><button class="btn btn-lg btn-danger">
+              <span class="fa fa-credit-card"></span> Make Reservation
+            </button></a
+          >
+          <a href="/"
+            ><button class="btn btn-lg btn-default">
+              <span class="fa fa-home"></span></button
+          ></a>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-12">
+          <!-- Current Tables in Use -->
+          <div class="card">
+            <div class="card-header">
+              <h4>Current Reservations</h4>
+            </div>
+            <div class="card-body">
+              <ul id="tableList" class="list-group"></ul>
+            </div>
+          </div>
+
+          <!-- Waiting List Card -->
+          <div class="card mt-4">
+            <div class="card-header">
+              <h4>Waiting List</h4>
+            </div>
+            <div class="card-body">
+              <ul id="waitList" class="list-group"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="footer mt-4">
+        <div class="container">
+          <p>Control Panel</p>
+          <p>
+            <a href="/tables" id="clear">Clear Table</a> |
+            <a href="/api/tables">API Table Link</a> |
+            <a href="/api/waitlist">API Wait List</a>
+          </p>
+        </div>
+      </footer>
+    </div>
+  </body>
+
+  <!-- BELOW CODE IS CRITICAL. IT HANDLES HOW FORM DATA IS LOADED FROM OUR SERVER -->
+  <script type="text/javascript">
+    $.get("/api/tables", function (data) {
+      let list = $("#tableList");
+      console.log(data);
+      if (data.length > 0) {
+        data.forEach((item, index) => {
+          list.append(`
+            <li class="list-group-item" style="margin-top:10px">
+              <h2 >Table # ${index}</h2>
+              <hr>
+              <h2>ID: <span id="ix">${item.id}</span> </h2>
+              <h2>Name: ${item.name} </h2>
+              <h2>Email: ${item.email}</h2>
+              <h2>Phone: ${item.phone}</h2>
+              <a href="/tables"><button class="btn btn-lg btn-danger" id="check-off">
+              <span class="fa fa-credit-card"></span> Check off
+            </button></a>
+            </li>`);
+        });
+      } else {
+        list.append("There are no reservations.");
+      }
+    });
+    $.get("/api/waitlist", function (data) {
+      let list = $("#waitList");
+      console.log(data);
+      if (data.length > 0) {
+        data.forEach((item, index) => {
+          list.append(`
+            <li class="list-group-item" style="margin-top:10px">
+              <h2>Table # ${index}</h2>
+              <hr>
+              <h2>ID: ${item.id} </h2>
+              <h2>Name: ${item.name} </h2>
+              <h2>Email: ${item.email}</h2>
+              <h2>Phone: ${item.phone}</h2>
+            </li>`);
+        });
+      } else {
+        list.append("There are no one in the wait list.");
+      }
+    });
+    $("#clear").on("click", function (event) {
+      $.ajax({
+        url: "/api/tables/clear",
+        type: "DELETE",
+        success: function (result) {
+          console.log("Cleared");
+        },
+      });
+    });
+
+    $("#tableList").on("click", "a", function (event) {
+      let id = $(this).parent().find("#ix").text();
+      $.ajax({
+        url: `/api/tables/${id}`,
+        type: "DELETE",
+        success: function (result) {
+          console.log("Reservation checked off");
+        },
+      });
+    });
+  </script>
+</html>
